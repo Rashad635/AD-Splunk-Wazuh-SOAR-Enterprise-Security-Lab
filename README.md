@@ -774,7 +774,91 @@ The integration uses a JSON webhook.
 
 ---
 
-# 19. Enterprise Splunk SIEM deployment and SOAR automated incident response
+# 19. VirusTotal enrichment
+
+VirusTotal can be used to investigate supported indicators such as file hashes.
+
+Workflow:
+
+```text
+Wazuh Alert
+     |
+     v
+Extract File Hash
+     |
+     v
+VirusTotal Lookup
+     |
+     v
+Return Reputation
+```
+
+The result can be added to the security notification sent to the SOC channel.
+
+---
+
+# 20. AbuseIPDB enrichment
+
+AbuseIPDB can be used to investigate IP-based indicators.
+
+Workflow:
+
+```text
+Wazuh Alert
+     |
+     v
+Extract Source IP
+     |
+     v
+AbuseIPDB Lookup
+     |
+     v
+Return IP Reputation
+```
+
+The resulting reputation information can be passed to the final Tines decision or Slack notification.
+
+---
+
+# 21. Slack notification
+
+After enrichment, Tines can send the security event to a Slack security channel.
+
+Example notification:
+
+```text
+Security Alert
+
+Alert:
+Suspicious Windows Activity
+
+Host:
+MYDFIR-Windows
+
+Rule:
+100101
+
+Severity:
+10
+
+IOC:
+<indicator>
+
+VirusTotal:
+<reputation>
+
+AbuseIPDB:
+<reputation>
+
+MITRE ATT&CK:
+T1078
+```
+
+This gives the analyst useful context without requiring every enrichment step to be performed manually.
+
+---
+
+# 22. Enterprise Splunk SIEM deployment and SOAR automated incident response
 
 The project demonstrates an end-to-end security operations workflow:
 
@@ -1042,7 +1126,7 @@ This confirms that the endpoint is generating telemetry across multiple Windows 
 
 ---
 
-# 20. Threat simulation
+# 23. Threat simulation
 
 The lab uses a controlled adversary simulation to generate telemetry that can be detected and investigated.
 
@@ -1089,7 +1173,7 @@ This generates telemetry that can be observed through:
 
 ---
 
-# 21. Detection engineering
+# 24. Detection engineering
 
 **Correlation search**
 
@@ -1166,7 +1250,7 @@ This demonstrates the transition from raw telemetry to an actionable security de
 
 ---
 
-# 22. SOAR automation
+# 25. SOAR automation
 
 The SOAR layer receives the Splunk alert and performs automated enrichment.
 
@@ -1203,7 +1287,7 @@ The automation extracts information such as:
 
 ---
 
-# 11. VirusTotal enrichment
+# 26. VirusTotal/AbuseIPDB enrichment
 
 VirusTotal is used to enrich supported indicators identified by the detection.
 
@@ -1216,7 +1300,7 @@ Wazuh / Splunk Alert
 Extract Indicator
         |
         v
-VirusTotal API
+VirusTotal/AbuseIPDB API
         |
         v
 Reputation Result
@@ -1229,7 +1313,7 @@ For URL-based indicators, the workflow can query the URL or domain reputation an
 
 ---
 
-# 12. Slack incident notification
+# 27. Slack incident notification
 
 After enrichment, Tines sends the investigation summary to the dedicated `#soar` Slack channel.
 
@@ -1273,11 +1357,11 @@ T1059.001 - PowerShell
 
 ---
 
-# 13. Automated investigation summary
+# 28. Automated investigation summary**
 
 The SOAR workflow generated the following investigation context during the simulated scenario.
 
-## Findings
+**Findings**
 
 * `cmd.exe` executed a PowerShell process.
 * PowerShell used `IEX` and `Net.WebClient.DownloadString`.
@@ -1285,7 +1369,7 @@ The SOAR workflow generated the following investigation context during the simul
 * The script was executed with the `-DumpCreds` argument.
 * VirusTotal enrichment identified the referenced URL as suspicious or malicious according to multiple vendors.
 
-## Investigation summary
+**Investigation summary**
 
 The alert represents a PowerShell download-and-execute technique associated with credential-dumping activity.
 
@@ -1307,7 +1391,7 @@ The available alert data does not independently confirm whether credential dumpi
 
 ---
 
-# 14. 5W1H investigation
+**5W1H investigation**
 
 | Question  | Finding                                                          |
 | --------- | ---------------------------------------------------------------- |
@@ -1320,7 +1404,7 @@ The available alert data does not independently confirm whether credential dumpi
 
 ---
 
-# 15. Response recommendations
+**Response recommendations**
 
 The automated investigation produced the following recommendations:
 
@@ -1333,12 +1417,12 @@ The automated investigation produced the following recommendations:
 
 ---
 
-# 16. IOC handling
+**IOC handling**
 
 The simulated scenario contains the following URL indicator:
 
 ```text
-https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/f650520c4b1004daf8b3ec08007a0b945b91253a/Exfiltration/Invoke-Mimikatz.ps1
+https://raw [.] githubusercontent [.] com/PowerShellMafia/PowerSploit/f650520c4b1004daf8b3ec08007a0b945b91253a/Exfiltration/Invoke-Mimikatz.ps1
 ```
 
 The IOC should be handled as a security investigation artifact within the isolated lab.
@@ -1363,12 +1447,12 @@ Recommend Blocking
 
 ---
 
-# 17. End-to-end incident response workflow
+# 29. End-to-end incident response workflow
 
 The complete workflow is:
 
 ```text
-                         KALI / TEST ACTIVITY
+                         ATOMIC TEST / TEST ACTIVITY
                                   |
                                   v
                          WINDOWS ENDPOINT
@@ -1398,7 +1482,7 @@ The complete workflow is:
                     +-------------+-------------+
                     |                           |
                     v                           v
-               VirusTotal                Investigation Logic
+               VirusTotal/AbuseDBIP     Investigation Logic
                     |                           |
                     +-------------+-------------+
                                   |
@@ -1411,548 +1495,7 @@ The complete workflow is:
 
 ---
 
-# 18. Validation and testing
-
-## 18.1 Verify Splunk ingestion
-
-Run:
-
-```spl
-index=endpoint
-```
-
-For the simulated activity:
-
-```spl
-index=endpoint CommandLine="*Invoke-Mimikatz*"
-```
-
-## 18.2 Verify the correlation search
-
-Confirm that the scheduled search executes according to its configured schedule.
-
-Example:
-
-```text
-Search:
-Malicious Execution
-
-Schedule:
-*/5 * * * *
-
-Trigger:
-Number of Results > 0
-```
-
-## 18.3 Verify the SOAR webhook
-
-Confirm that the Splunk alert reaches the Tines webhook.
-
-Expected flow:
-
-```text
-Splunk
-  |
-  v
-Webhook
-  |
-  v
-Tines
-```
-
-## 18.4 Verify VirusTotal enrichment
-
-Confirm that Tines extracts the expected indicator and performs the configured reputation lookup.
-
-## 18.5 Verify Slack notification
-
-Confirm that the enriched security alert is delivered to:
-
-```text
-#soar
-```
-
-Expected flow:
-
-```text
-Splunk Alert
-     |
-     v
-Tines
-     |
-     v
-VirusTotal
-     |
-     v
-Investigation Summary
-     |
-     v
-Slack
-```
-
----
-
-# 19. Troubleshooting
-
-## Splunk receives no events
-
-Check:
-
-* Splunk Universal Forwarder service.
-* Receiver address.
-* TCP port `9997`.
-* `inputs.conf`.
-* Splunk index configuration.
-* Windows Event Log sources.
-
-Check the Windows service:
-
-```powershell
-Get-Service SplunkForwarder
-```
-
-Test connectivity:
-
-```powershell
-Test-NetConnection 192.168.169.135 -Port 9997
-```
-
----
-
-## Sysmon events are missing
-
-Verify:
-
-* Sysmon is installed.
-* Sysmon service is running.
-* The Sysmon operational channel is enabled.
-* The Universal Forwarder is collecting the channel.
-* `render_xml = true` is configured where required.
-
-Search:
-
-```spl
-index=endpoint source="*Sysmon/Operational"
-```
-
----
-
-## PowerShell events are missing
-
-Search:
-
-```spl
-index=endpoint source="*PowerShell/Operational"
-```
-
-Verify that the following input is enabled:
-
-```ini
-[WinEventLog://Microsoft-Windows-PowerShell/Operational]
-disabled = 0
-index = endpoint
-```
-
----
-
-## Correlation search does not trigger
-
-Check:
-
-* Search syntax.
-* Index name.
-* Field names.
-* Event source.
-* Search schedule.
-* Trigger condition.
-* Time range.
-* Actual event data.
-
-Run the SPL manually before relying on the scheduled alert.
-
----
-
-## SOAR webhook does not trigger
-
-Check:
-
-* Webhook URL.
-* HTTP request configuration.
-* Alert action.
-* JSON payload.
-* Network connectivity.
-* Tines workflow status.
-
----
-
-## VirusTotal enrichment fails
-
-Check:
-
-* API configuration.
-* Indicator extraction.
-* URL encoding.
-* API response.
-* Rate limits.
-* Tines workflow execution.
-
----
-
-# 20. Security operations workflow
-
-This project demonstrates the following SOC lifecycle:
-
-```text
-1. Telemetry Collection
-        |
-        v
-2. Centralized Logging
-        |
-        v
-3. Detection Engineering
-        |
-        v
-4. Alert Generation
-        |
-        v
-5. Automated Enrichment
-        |
-        v
-6. Investigation
-        |
-        v
-7. Response Recommendation
-        |
-        v
-8. Analyst Notification
-```
-
----
-
-# 21. Key cybersecurity competencies demonstrated
-
-## SIEM administration
-
-* Splunk Enterprise deployment.
-* Splunk receiver configuration.
-* Index configuration.
-* Universal Forwarder deployment.
-* Windows Event Log ingestion.
-* Telemetry validation.
-
-## Endpoint telemetry engineering
-
-* Sysmon integration.
-* Windows Security monitoring.
-* PowerShell logging.
-* Windows Defender telemetry.
-* Process and command-line visibility.
-
-## Detection engineering
-
-* SPL development.
-* Correlation searches.
-* Process-lineage analysis.
-* Suspicious PowerShell detection.
-* LOLBin detection.
-* Download-and-execute detection.
-
-## SOAR automation
-
-* Webhook-based alert ingestion.
-* Automated IOC extraction.
-* VirusTotal enrichment.
-* Investigation context generation.
-* Slack notification.
-
-## Incident response
-
-* Alert triage.
-* 5W1H analysis.
-* Process investigation.
-* IOC analysis.
-* Threat intelligence enrichment.
-* Containment recommendations.
-
----
-
-# 22. Technology stack
-
-| Category            | Technology                        |
-| ------------------- | --------------------------------- |
-| SIEM                | Splunk Enterprise 10.4.2          |
-| Forwarder           | Splunk Universal Forwarder 10.4.2 |
-| Endpoint            | Windows                           |
-| Endpoint Telemetry  | Sysmon                            |
-| SOAR                | Tines                             |
-| Threat Intelligence | VirusTotal                        |
-| Notification        | Slack                             |
-| Detection Language  | Splunk SPL                        |
-| Protocol            | HTTP/JSON Webhook                 |
-| Operating System    | Ubuntu / Windows                  |
-| Security Framework  | MITRE ATT&CK                      |
-
----
-
-# 23. Project outcome
-
-The completed environment demonstrates an enterprise-style security monitoring and automated response pipeline.
-
-```text
-                     ENDPOINT
-                         |
-                         v
-              Windows Event Logs
-                    + Sysmon
-                         |
-                         v
-              Splunk Universal Forwarder
-                         |
-                         v
-                 Splunk Enterprise
-                         |
-                         v
-                Detection Engineering
-                         |
-                         v
-                   Security Alert
-                         |
-                         v
-                    Tines SOAR
-                         |
-              +----------+----------+
-              |                     |
-              v                     v
-         VirusTotal          Investigation
-              |                     |
-              +----------+----------+
-                         |
-                         v
-                       Slack
-                         |
-                         v
-                  SOC Analyst
-```
-
-The project demonstrates how raw endpoint telemetry can be transformed into a structured security workflow:
-
-```text
-Telemetry
-    |
-    v
-Detection
-    |
-    v
-Alert
-    |
-    v
-Enrichment
-    |
-    v
-Investigation
-    |
-    v
-Response Recommendation
-    |
-    v
-Analyst Notification
-```
-
----
-
-# 24. Repository structure
-
-A recommended repository structure is:
-
-```text
-enterprise-splunk-siem-soar/
-|
-+-- README.md
-|
-+-- architecture/
-|   +-- architecture.png
-|   +-- telemetry-flow.png
-|   +-- soar-workflow.png
-|
-+-- splunk/
-|   +-- inputs.conf
-|   +-- detection-rules/
-|       +-- malicious-execution.spl
-|
-+-- sysmon/
-|   +-- sysmon-config.xml
-|
-+-- soar/
-|   +-- tines-workflow.md
-|   +-- webhook-payload.json
-|
-+-- incident-response/
-|   +-- investigation-report.md
-|   +-- response-playbook.md
-|
-+-- screenshots/
-|   +-- splunk-dashboard.png
-|   +-- splunk-alert.png
-|   +-- tines-workflow.png
-|   +-- virustotal-enrichment.png
-|   +-- slack-alert.png
-|
-+-- documentation/
-|   +-- deployment-notes.md
-|   +-- troubleshooting.md
-|
-+-- lab-notes/
-    +-- attack-simulation.md
-```
-
----
-
-# 25. Final architecture
-
-```text
-                         +-------------------+
-                         |    Test Activity  |
-                         |   Kali / Lab Host |
-                         +---------+---------+
-                                   |
-                                   v
-                         +-------------------+
-                         | Windows Endpoint  |
-                         |   DP-PC1.local.net|
-                         +---------+---------+
-                                   |
-                       +-----------+-----------+
-                       |                       |
-                       v                       v
-                    Sysmon             Windows Event Logs
-                       |                       |
-                       +-----------+-----------+
-                                   |
-                                   v
-                     +-------------------------+
-                     | Splunk Universal        |
-                     | Forwarder               |
-                     +------------+------------+
-                                  |
-                                  | TCP 9997
-                                  v
-                     +-------------------------+
-                     | Splunk Enterprise       |
-                     | 192.168.169.135:8000    |
-                     +------------+------------+
-                                  |
-                                  v
-                     +-------------------------+
-                     | Detection Engineering   |
-                     | SPL / Correlation Search|
-                     +------------+------------+
-                                  |
-                                  v
-                     +-------------------------+
-                     | Security Alert          |
-                     +------------+------------+
-                                  |
-                                  | Webhook
-                                  v
-                     +-------------------------+
-                     | Tines SOAR              |
-                     +------------+------------+
-                                  |
-                    +-------------+-------------+
-                    |                           |
-                    v                           v
-             +-------------+             +-------------+
-             | VirusTotal  |             | Investigation|
-             | Enrichment  |             | Logic       |
-             +------+------+             +------+------+
-                    |                           |
-                    +-------------+-------------+
-                                  |
-                                  v
-                         +----------------+
-                         | Slack #soar    |
-                         +-------+--------+
-                                 |
-                                 v
-                         SOC Investigation
-```
-
----
-
-# 26. Conclusion
-
-This project demonstrates an enterprise-style SIEM and SOAR architecture built around Splunk Enterprise, Windows endpoint telemetry, Sysmon, Tines, VirusTotal, and Slack.
-
-The environment covers the complete security operations lifecycle:
-
-```text
-Endpoint Telemetry
-       |
-       v
-Centralized Collection
-       |
-       v
-Detection Engineering
-       |
-       v
-Security Alert
-       |
-       v
-SOAR Automation
-       |
-       v
-Threat Intelligence
-       |
-       v
-Investigation
-       |
-       v
-Response Recommendation
-       |
-       v
-SOC Notification
-```
-
-The project provides practical evidence of skills in **SIEM administration, endpoint telemetry engineering, SPL detection development, security alert triage, threat intelligence enrichment, SOAR automation, and incident response**.
-
-One technical point I deliberately changed: I would describe this as **"enterprise-style" or "enterprise-grade lab"** rather than "production-ready." A GitHub portfolio project using a controlled lab environment should distinguish demonstrated capabilities from a production deployment. This makes the repository more credible to a SOC hiring manager.
-
-
-# 17. Splunk Universal Forwarder
-
-The Windows endpoints also use Splunk Universal Forwarder to send telemetry to the Splunk server.
-
-Typical event sources include:
-
-* Security
-* System
-* Application
-* PowerShell
-* Sysmon
-
-The telemetry flow is:
-
-```text
-Windows Endpoint
-      |
-      v
-Splunk Universal Forwarder
-      |
-      v
-Splunk Indexer
-      |
-      v
-Splunk Enterprise
-      |
-      v
-Search / Detection / Dashboard
-```
-
-This provides an additional investigation platform alongside Wazuh.
-
----
-
-# 18. Kali Linux security testing
+# 30. Kali Linux security testing
 
 Kali Linux is used as the controlled attacker/test system.
 
@@ -1992,117 +1535,7 @@ This allows the lab to demonstrate a complete SOC investigation rather than simp
 
 
 
-# 22. Tines automation workflow
-
-The Tines workflow can automate:
-
-```text
-Alert Reception
-       |
-       v
-IOC Extraction
-       |
-       +----------------+
-       |                |
-       v                v
- VirusTotal         AbuseIPDB
-       |                |
-       +--------+-------+
-                |
-                v
-        Decision / Enrichment
-                |
-                v
-              Slack
-```
-
----
-
-# 23. VirusTotal enrichment
-
-VirusTotal can be used to investigate supported indicators such as file hashes.
-
-Workflow:
-
-```text
-Wazuh Alert
-     |
-     v
-Extract File Hash
-     |
-     v
-VirusTotal Lookup
-     |
-     v
-Return Reputation
-```
-
-The result can be added to the security notification sent to the SOC channel.
-
----
-
-# 24. AbuseIPDB enrichment
-
-AbuseIPDB can be used to investigate IP-based indicators.
-
-Workflow:
-
-```text
-Wazuh Alert
-     |
-     v
-Extract Source IP
-     |
-     v
-AbuseIPDB Lookup
-     |
-     v
-Return IP Reputation
-```
-
-The resulting reputation information can be passed to the final Tines decision or Slack notification.
-
----
-
-# 25. Slack notification
-
-After enrichment, Tines can send the security event to a Slack security channel.
-
-Example notification:
-
-```text
-Security Alert
-
-Alert:
-Suspicious Windows Activity
-
-Host:
-MYDFIR-Windows
-
-Rule:
-100101
-
-Severity:
-10
-
-IOC:
-<indicator>
-
-VirusTotal:
-<reputation>
-
-AbuseIPDB:
-<reputation>
-
-MITRE ATT&CK:
-T1078
-```
-
-This gives the analyst useful context without requiring every enrichment step to be performed manually.
-
----
-
-# 26. End-to-end detection workflow
+# 31. End-to-end detection workflow
 
 The complete detection and response workflow is:
 
@@ -2159,7 +1592,7 @@ The complete detection and response workflow is:
 
 ---
 
-# 27. SOC investigation workflow
+# 32. SOC investigation workflow
 
 ## Step 1: Identify the alert
 
@@ -2231,7 +1664,7 @@ Tines sends the enriched alert to Slack.
 
 ---
 
-# 28. Dashboards
+# 33. Dashboards
 
 Recommended Wazuh and Splunk dashboards include:
 
@@ -2267,7 +1700,7 @@ Recommended Wazuh and Splunk dashboards include:
 
 ---
 
-# 29. Validation and testing
+# 34. Validation and testing
 
 ## Wazuh server
 
@@ -2281,12 +1714,6 @@ sudo systemctl status wazuh-dashboard
 
 ```powershell
 Get-Service Wazuh
-```
-
-## Linux agent
-
-```bash
-sudo systemctl status wazuh-agent
 ```
 
 ## Sysmon
@@ -2339,7 +1766,7 @@ Slack
 
 ---
 
-# 30. Troubleshooting
+# 35. Troubleshooting
 
 ## Wazuh agent does not appear
 
@@ -2442,7 +1869,7 @@ The configured rule must actually generate a Wazuh alert before the integration 
 
 ---
 
-# 31. Skills demonstrated
+# 36. Skills demonstrated
 
 This project demonstrates practical experience with:
 
@@ -2450,7 +1877,6 @@ This project demonstrates practical experience with:
 * XDR architecture
 * Active Directory security monitoring
 * Windows security monitoring
-* Linux security monitoring
 * Sysmon
 * Windows Event Logs
 * Splunk Enterprise
@@ -2475,28 +1901,24 @@ This project demonstrates practical experience with:
 
 ---
 
-# 32. Project outcome
+# 37. Project outcome
 
 The completed lab provides an end-to-end security monitoring and automation environment.
 
 ```text
                        ENDPOINTS
                            |
-             +-------------+-------------+
-             |                           |
-          WINDOWS                      LINUX
-             |                           |
-          Sysmon                    Wazuh Agent
-             |                           |
-             +-------------+-------------+
+                        WINDOWS                      
+                           |                           
+                        Sysmon                    
                            |
                            v
-                  WAZUH SIEM / XDR
+                      SIEM / XDR
                            |
                     Detection Rules
                            |
                            v
-                      WAZUH ALERT
+                          ALERT
                            |
                            v
                        TINES SOAR
@@ -2536,7 +1958,7 @@ Security Notification
 
 ---
 
-# 33. Final architecture
+# 38. Final architecture
 
 ```text
                           INTERNET
@@ -2554,7 +1976,7 @@ Security Notification
                     JSON Webhook
                          |
                          v
-                  WAZUH SIEM / XDR
+                     SIEM / XDR
                    /             \
                   /               \
            Detection             Archives
@@ -2572,45 +1994,7 @@ Security Notification
         Analyst Notification
 ```
 
-### Internal lab network
-
-```text
-       +--------------------------------------+
-       |          INTERNAL LAB NETWORK        |
-       |             192.168.10.0/24         |
-       +--------------------------------------+
-
-                  +----------------+
-                  | Ubuntu Server  |
-                  | 192.168.10.40  |
-                  +--------+-------+
-                           |
-                     +-----+-----+
-                     |           |
-                  Splunk       Wazuh
-                Enterprise    Manager
-                     |           |
-                  Indexer      Indexer
-                                 |
-                              Dashboard
-                                 |
-          +----------------------+------------------+
-          |                      |                  |
-          v                      v                  v
-        FD-PC1                 DP-PC1              DC
-    192.168.10.30          192.168.10.20      192.168.10.50
-          |                      |                  |
-       Sysmon                 Sysmon           Active Directory
-       Wazuh                  Wazuh                  DNS
-       Splunk UF              Splunk UF            Security
-          |                      |                  |
-          +----------------------+------------------+
-                                 |
-                                 v
-                         Security Telemetry
-```
-
-### Kali Linux testing path
+**Kali Linux testing path**
 
 ```text
                     KALI LINUX
@@ -2625,10 +2009,9 @@ Security Notification
                          v
                    SIEM Detection
 ```
-
 ---
 
-# 34. Conclusion
+# 39. Conclusion
 
 This project demonstrates a practical enterprise SOC architecture using open-source and commercial security technologies.
 
@@ -2660,33 +2043,7 @@ creates a realistic security operations lab suitable for practicing SOC monitori
 
 ---
 
-## Project architecture image
-
-The repository should contain the architecture image alongside this README:
-
-```text
-repository/
-|
-+-- README.md
-|
-+-- AD_Splunk_Wazuh_SOAR.jpg
-|
-+-- screenshots/
-|
-+-- wazuh/
-|
-+-- splunk/
-|
-+-- tines/
-|
-+-- detection-rules/
-|
-+-- documentation/
-|
-+-- lab-notes/
-```
-
-## Technologies
+**Technologies**
 
 ```text
 Active Directory
@@ -2706,9 +2063,5 @@ SIEM
 SOAR
 XDR
 FIM
+Atomic Red Team
 ```
-
-
-
-
-
