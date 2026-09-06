@@ -1357,7 +1357,7 @@ T1059.001 - PowerShell
 
 ---
 
-# 28. Automated investigation summary**
+# 28. Automated investigation summary
 
 The SOAR workflow generated the following investigation context during the simulated scenario.
 
@@ -2065,3 +2065,32 @@ XDR
 FIM
 Atomic Red Team
 ```
+
+# 40. Screenshots
+
+## Wazuh Installation
+<img width="1662" height="792" alt="Wazuh curl" src="https://github.com/user-attachments/assets/9b31d8cb-121d-4803-a9e2-936c15dbd9b5" />
+<img width="1660" height="866" alt="Wazuh Installation begins" src="https://github.com/user-attachments/assets/4222ef98-64e9-4bf8-8436-087c398502bf" />
+#
+## Wazuh Archives
+<img width="1652" height="872" alt="Enabling archives" src="https://github.com/user-attachments/assets/ad8595f7-bf09-4379-8a2d-1f2e87cc8c9f" />
+<img width="1655" height="880" alt="Enabling archives after" src="https://github.com/user-attachments/assets/5eeb216b-8d47-41e7-a198-7ebf53a58f64" />
+#
+## Modify Filebeat
+<img width="1641" height="757" alt="Modify filebeat after" src="https://github.com/user-attachments/assets/d46b8186-fb47-4689-8a2d-ec808cc73ea5" />
+#
+## wazuh-archives index
+<img width="1663" height="678" alt="Creating wazuh-archives index patterns" src="https://github.com/user-attachments/assets/caf90734-e9fc-4a67-9586-6da3475ec5b7" />
+<img width="1656" height="727" alt="adding wazuh-archives index patterns" src="https://github.com/user-attachments/assets/08c5b6ab-570e-472a-941a-8fd32eb4b868" />
+<img width="1663" height="867" alt="Created wazuh-archives index patterns" src="https://github.com/user-attachments/assets/ab82cda5-c270-4fb8-92b3-5cce4ee6b275" />
+#
+## wazuh Agents Deployment
+<img width="1660" height="828" alt="Deploy new agent _Windows" src="https://github.com/user-attachments/assets/52048099-6912-4ff1-99d2-d7e7125ae368" />
+<img width="1667" height="342" alt="Start agent service (Windows-pc)" src="https://github.com/user-attachments/assets/c3c2394d-ebb6-46b4-ae1e-146f7dea070a" />
+
+
+
+
+
+
+
