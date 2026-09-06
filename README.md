@@ -1,5 +1,5 @@
 # AD + Splunk + Wazuh + SOAR Enterprise Security Lab
-**Date: July 31, 2026**
+**Date: September 06, 2026**
 
 An end-to-end cybersecurity home lab demonstrating enterprise-style security monitoring, detection engineering, threat intelligence enrichment, and SOAR automation using Active Directory, Splunk, Wazuh, Sysmon, Tines, VirusTotal, AbuseIPDB, and Slack.
 
@@ -9,7 +9,7 @@ The project simulates a small enterprise SOC environment where controlled securi
 
 ## Architecture
 
-<img width="850" height="1100" alt="AD_Splunk_Wazuh_SOAR" src="https://github.com/user-attachments/assets/60731d25-52fe-4f81-9e5b-f13cb8b83268" />
+<img width="762" height="886" alt="AD_Splunk_Wazuh_SOAR" src="https://github.com/user-attachments/assets/a6496082-af1b-4a78-a4d2-e660d7aa505c" />
 
 ## Security monitoring flow
 
@@ -132,8 +132,12 @@ The primary objectives of this project are to:
 | Internal Network         | `192.168.10.0/24`| Lab network                |
 | Tines                    | Internet         | SOAR platform              |
 
+## 4. Network topology
+
 The network contains:
-                        Internet
+
+```text
+                         Internet
                             |
                          Router
                             |
@@ -147,15 +151,22 @@ The network contains:
           |
      +----+----+
      |         |
-  Splunk     Wazuh
-Kali Linux is connected to the same internal environment and is used to generate controlled security activity.
+   Splunk     Wazuh
 
-5. Ubuntu security server
+Kali Linux is connected to the same internal environment and is used to generate controlled security activity.
+```
+
+# 5. Ubuntu security server
+
 The Ubuntu server provides the central security infrastructure.
-Ubuntu Server
-192.168.10.40
-NAT: 192.168.169.135
-Services hosted on the server:
+
+**Ubuntu Server**
+**IP Address:** `192.168.10.40`
+**NAT:** `192.168.169.135`
+
+**Services hosted on the server:**
+
+```text
 Ubuntu Server
 |
 +-- Splunk Enterprise
@@ -167,71 +178,100 @@ Ubuntu Server
     +-- Wazuh Manager
     +-- Wazuh Indexer
     +-- Wazuh Dashboard
-Wazuh responsibilities
+```
+**Wazuh responsibilities**
+
 Wazuh is responsible for:
-Endpoint monitoring
-Windows event collection
-Sysmon telemetry
-Linux monitoring
-File Integrity Monitoring
-Security detection
-Custom detection rules
-MITRE ATT&CK mapping
-Alert generation
-Agent management
-Splunk responsibilities
+
+- Endpoint monitoring
+- Windows event collection
+- Sysmon telemetry
+- File Integrity Monitoring
+- Security detection
+- Custom detection rules
+- MITRE ATT&CK mapping
+- Alert generation
+- Agent management
+
+**Splunk responsibilities**
+
 Splunk provides:
-Centralized event indexing
-SPL-based investigation
-Windows event analysis
-Sysmon analysis
-Security dashboards
-Correlation searches
-Detection development
-Historical event investigation
+
+- Centralized event indexing
+- SPL-based investigation
+- Windows event analysis
+- Sysmon analysis
+- Security dashboards
+- Correlation searches
+- Detection development
+- Historical event investigation
+  
 Running both platforms provides the ability to investigate the same endpoint activity from two SIEM perspectives.
 
-6. Active Directory domain controller
-The Domain Controller is the identity and authentication core of the lab.
-Domain Controller
-192.168.10.50
+# 6. Active Directory domain controller
 
+The Domain Controller is the identity and authentication core of the lab.
+
+**Domain Controller**
+**IP Address:** `192.168.10.50`
+
+**Services hosted on the server:**
+
+```text
+Domain Controller
+|
 +-- Active Directory
 +-- DNS
 +-- Windows Security Events
-Domain:
-local.net
-Example domain systems:
++-- Sysmon Events
+```
+
+**Domain:**
+
+`local.net`
+
+**Example domain systems:**
+
+```text
 fd-pc1.local.net
 dp-pc1.local.net
-The Domain Controller provides:
-User accounts
-Computer accounts
-Authentication
-Kerberos
-Group Policy
-DNS
-Domain membership
-Windows security event generation
-Important security telemetry includes:
-Successful logons
-Failed logons
-Account creation
-Account deletion
-Account modifications
-Privilege changes
-Authentication failures
-Suspicious account activity
+```
+**The Domain Controller provides:**
 
-7. Windows endpoints
+- User accounts
+- Computer accounts
+- Authentication
+- Kerberos
+- Group Policy
+- DNS
+- Domain membership
+- Windows security event generation
+
+**Important security telemetry includes:**
+
+- Successful logons
+- Failed logons
+- Account creation
+- Account deletion
+- Account modifications
+- Privilege changes
+- Authentication failures
+- Suspicious account activity
+
+## 7. Windows endpoints
+
 The lab contains two Windows endpoints.
-FD-PC1
-Host IP: 192.168.10.30
-NAT IP:  192.168.169.184
-DP-PC1
-Host IP: 192.168.10.20
-NAT IP:  192.168.169.226
+
+| Endpoint | Host IP         | NAT IP            |
+| -------- | --------------- | ----------------- |
+| FD-PC1   | `192.168.10.30` | `192.168.169.184` |
+| DP-PC1   | `192.168.10.20` | `192.168.169.226` |
+
+### Endpoint components
+
 Each endpoint contains:
+
+```text
 Windows Endpoint
 |
 +-- Sysmon
@@ -239,11 +279,16 @@ Windows Endpoint
 +-- Wazuh Agent
 |
 +-- Splunk Universal Forwarder
+```
+
 This creates two telemetry pipelines.
-Wazuh telemetry
+
+### Wazuh telemetry
+
+```text
 Windows
    |
-Sysmon + Windows Events
+   +-- Sysmon + Windows Events
    |
 Wazuh Agent
    |
@@ -252,44 +297,47 @@ Wazuh Manager
 Wazuh Indexer
    |
 Wazuh Dashboard
-Splunk telemetry
+```
+
+### Splunk telemetry
+
+```text
 Windows
    |
-Sysmon + Windows Events
+   +-- Sysmon + Windows Events
    |
 Splunk Universal Forwarder
    |
 Splunk Indexer
    |
 Splunk Enterprise
+```
 
-8. Sysmon
+## 8. Sysmon
+
 Sysmon provides detailed Windows endpoint telemetry that can be used for threat detection and incident investigation.
-Important Sysmon events include:
-Event ID
-Activity
-1
-Process creation
-3
-Network connection
-7
-Image/DLL loading
-10
-Process access
-11
-File creation
-17
-Named pipe creation
-22
-DNS query
 
-The lab uses Sysmon to collect telemetry such as:
-Process creation
-Network connections
-File creation
-Registry activity
-Process termination
-DNS queries
+### Important Sysmon events
+
+| Event ID | Activity            |
+| -------: | ------------------- |
+|      `1` | Process creation    |
+|      `3` | Network connection  |
+|      `7` | Image/DLL loading   |
+|     `10` | Process access      |
+|     `11` | File creation       |
+|     `17` | Named pipe creation |
+|     `22` | DNS query           |
+
+**The lab uses Sysmon to collect telemetry such as:**
+
+* Process creation
+* Network connections
+* File creation
+* Registry activity
+* Process termination
+* DNS queries
+
 
 
 
