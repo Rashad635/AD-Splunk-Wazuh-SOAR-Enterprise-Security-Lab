@@ -1,9 +1,9 @@
 # AD + Splunk + Wazuh + SOAR Enterprise Security Lab
-**Date: September 06, 2026**
+**Date: September 07, 2026**
 
 An end-to-end cybersecurity home lab demonstrating enterprise-style security monitoring, detection engineering, threat intelligence enrichment, and SOAR automation using Active Directory, Splunk, Wazuh, Sysmon, Tines, VirusTotal, AbuseIPDB, and Slack.
 
-The project simulates a small enterprise SOC environment where controlled security activity is generated from Kali Linux, collected from Windows and Linux systems, analyzed through Wazuh and Splunk, enriched through threat intelligence platforms, and automated through Tines SOAR.
+The project simulates a small enterprise SOC environment where controlled security activity is generated from Kali Linux, collected from Windows systems, analyzed through Wazuh and Splunk, enriched through threat intelligence platforms, and automated through Tines SOAR.
 
 ---
 
@@ -129,7 +129,7 @@ The primary objectives of this project are to:
 | DP-PC1 NAT               | `192.168.169.226`| NAT address                |
 | Kali Linux               | `192.168.10.10`  | Attacker / security testing |
 | Kali NAT                 | `192.168.169.134`| NAT address                |
-| Internal Network         | `192.168.10.0/24`| Lab network                |
+| Internal Network         | `192.168.169.0/24`| Lab network                |
 | Tines                    | Internet         | SOAR platform              |
 
 ## 4. Network topology
@@ -480,7 +480,7 @@ Install the agent:
 ```powershell
 msiexec.exe /i $env:TEMP\wazuh-agent.msi /q `
 WAZUH_MANAGER='192.168.169.135' `
-WAZUH_AGENT_NAME='MYDFIR-Windows'
+WAZUH_AGENT_NAME='DP-PC1'
 ```
 
 Start the service:
@@ -557,36 +557,43 @@ Wazuh should generate File Integrity Monitoring events describing the changes.
 
 # 14. Custom detection rules
 
-Custom Wazuh rules allow the environment to detect activity specific to the lab.
-
-Navigate to:
-
-```text
-Wazuh Dashboard
-    |
-    +-- Menu
-        |
-        +-- Server Management
-            |
-            +-- Rules
-                |
-                +-- Custom rules
-                    |
-                    +-- local_rules.xml
+**Guest account activation**
 ```
 
 Example rule:
 
 ```xml
-<group name="windows,authentication,">
+<group name="windows,windows_security,account_changed,adduser">
 
-    <rule id="100101" level="10">
-        <if_sid>60122</if_sid>
-        <description>Windows Guest account activity detected</description>
-        <mitre>
-            <id>T1078</id>
-        </mitre>
-    </rule>
+  <rule id="100200" level="12">
+
+    <if_sid>60103</if_sid>
+
+    <field name="win.system.eventID">^4722$</field>
+
+    <field name="win.eventdata.targetUserName">^Guest$</field>
+
+    <description>Windows Guest account was enabled.</description>
+
+    <mitre>
+
+      <id>T1078.001</id>
+
+    </mitre>
+
+    <group>
+
+      windows,
+
+      windows_account_management,
+
+      account_enabled,
+
+      guest_account,
+
+    </group>
+
+  </rule>
 
 </group>
 ```
@@ -600,24 +607,16 @@ Windows Event
 Parent Rule
      |
      v
-Custom Rule 100101
+Custom Rule 100200
      |
      v
-Severity 10
+Severity 12
      |
      v
 MITRE ATT&CK T1078
 ```
 
-Always validate the parent rule ID and event fields against the actual event generated in the environment before deploying a custom detection.
-
-Restart Wazuh when required:
-
-```bash
-sudo systemctl restart wazuh-manager
-```
-
----
+Validated the parent rule ID and event fields against the actual event generated in the environment before deploying the custom detection.
 
 # 15. Detection engineering
 
@@ -626,7 +625,6 @@ The project can be extended with custom detections for:
 * Account creation
 * Account deletion
 * Privilege changes
-* Guest account activation
 * Suspicious PowerShell
 * Command-line activity
 * Repeated authentication failures
@@ -634,7 +632,7 @@ The project can be extended with custom detections for:
 * File modifications
 * Network connections
 
-A detection engineering workflow can be represented as:
+A detection engineering workflow:
 
 ```text
 Raw Telemetry
@@ -662,7 +660,7 @@ Investigation
 
 # 16. MITRE ATT&CK mapping
 
-Detections can be mapped to MITRE ATT&CK techniques.
+Detection mapped to MITRE ATT&CK techniques.
 
 Example:
 
@@ -670,8 +668,8 @@ Example:
 Detection
     |
     v
-T1078
-Valid Accounts
+T1078.001
+Valid Accounts: Default Accounts
 ```
 
 MITRE mapping provides additional context during security investigations and helps categorize attacker behavior.
@@ -686,7 +684,7 @@ The project can be expanded by mapping detections across areas such as:
 * Lateral Movement
 * Command and Control
 
-Each technique should be mapped according to the behavior actually observed by the detection.
+Each technique will be mapped according to the behavior actually observed by the detection.
 
 ---
 
@@ -709,51 +707,32 @@ sudo chown root:wazuh /var/ossec/integrations/custom-tines
 sudo chown root:wazuh /var/ossec/integrations/custom-tines.py
 ```
 
-Review the integration script and configure it specifically for the Tines webhook and expected payload format.
+Reviewed the integration script and configure it specifically for Tines webhook and expected payload format.
 
-Edit:
+Edited:
 
 ```bash
 sudo nano /var/ossec/etc/ossec.conf
 ```
 
-Add:
+Added:
 
 ```xml
 <integration>
     <name>custom-tines</name>
-    <hook_url>https://your-tines-webhook-url</hook_url>
+    <hook_url>https://tines-webhook-url</hook_url>
     <alert_format>json</alert_format>
     <rule_id>100101</rule_id>
 </integration>
-```
-
-Replace:
-
-```text
-https://your-tines-webhook-url
 ```
 
 with the webhook generated by the Tines workflow.
 
 The `rule_id` determines which Wazuh detection triggers the integration.
 
-Restart Wazuh:
-
-```bash
-sudo systemctl restart wazuh-manager
-```
-
 Monitor the Wazuh log:
 
-```bash
-sudo tail -f /var/ossec/logs/ossec.log
-```
----
-
 # 18. Tines SOAR
-
-Tines provides the automation layer for the environment.
 
 The workflow is:
 
@@ -770,13 +749,9 @@ Tines
      +------> Slack
 ```
 
-The integration uses a JSON webhook.
-
----
-
 # 19. VirusTotal enrichment
 
-VirusTotal can be used to investigate supported indicators such as file hashes.
+VirusTotal used to investigate supported indicators such as file hashes.
 
 Workflow:
 
@@ -793,13 +768,13 @@ VirusTotal Lookup
 Return Reputation
 ```
 
-The result can be added to the security notification sent to the SOC channel.
+The resulting reputation information passed to the final Tines decision to Slack notification.
 
 ---
 
 # 20. AbuseIPDB enrichment
 
-AbuseIPDB can be used to investigate IP-based indicators.
+AbuseIPDB used to investigate IP-based indicators.
 
 Workflow:
 
@@ -816,7 +791,7 @@ AbuseIPDB Lookup
 Return IP Reputation
 ```
 
-The resulting reputation information can be passed to the final Tines decision or Slack notification.
+The resulting reputation information passed to the final Tines decision to Slack notification.
 
 ---
 
@@ -833,13 +808,13 @@ Alert:
 Suspicious Windows Activity
 
 Host:
-MYDFIR-Windows
+<Host name>
 
 Rule:
-100101
+<Rule Id>
 
 Severity:
-10
+<Number>
 
 IOC:
 <indicator>
@@ -897,7 +872,6 @@ SOC Investigation
 ```text
 +----------------------------------------------------------+
 |                   WINDOWS ENDPOINT                       |
-|                                                          |
 |                                                          |
 |  Windows Event Logs                                      |
 |  - Security                                              |
@@ -2038,11 +2012,6 @@ Threat Intelligence
       +
 Slack
 ```
-
-creates a realistic security operations lab suitable for practicing SOC monitoring, detection engineering, incident investigation, SIEM administration, and SOAR automation.
-
----
-
 **Technologies**
 
 ```text
@@ -2071,22 +2040,75 @@ Atomic Red Team
 ## Wazuh Installation
 <img width="1662" height="792" alt="Wazuh curl" src="https://github.com/user-attachments/assets/9b31d8cb-121d-4803-a9e2-936c15dbd9b5" />
 <img width="1660" height="866" alt="Wazuh Installation begins" src="https://github.com/user-attachments/assets/4222ef98-64e9-4bf8-8436-087c398502bf" />
-#
+
 ## Wazuh Archives
 <img width="1652" height="872" alt="Enabling archives" src="https://github.com/user-attachments/assets/ad8595f7-bf09-4379-8a2d-1f2e87cc8c9f" />
 <img width="1655" height="880" alt="Enabling archives after" src="https://github.com/user-attachments/assets/5eeb216b-8d47-41e7-a198-7ebf53a58f64" />
-#
+
 ## Modify Filebeat
 <img width="1641" height="757" alt="Modify filebeat after" src="https://github.com/user-attachments/assets/d46b8186-fb47-4689-8a2d-ec808cc73ea5" />
-#
-## wazuh-archives index
+
+## Wazuh-archives index
 <img width="1663" height="678" alt="Creating wazuh-archives index patterns" src="https://github.com/user-attachments/assets/caf90734-e9fc-4a67-9586-6da3475ec5b7" />
 <img width="1656" height="727" alt="adding wazuh-archives index patterns" src="https://github.com/user-attachments/assets/08c5b6ab-570e-472a-941a-8fd32eb4b868" />
 <img width="1663" height="867" alt="Created wazuh-archives index patterns" src="https://github.com/user-attachments/assets/ab82cda5-c270-4fb8-92b3-5cce4ee6b275" />
-#
-## wazuh Agents Deployment
-<img width="1660" height="828" alt="Deploy new agent _Windows" src="https://github.com/user-attachments/assets/52048099-6912-4ff1-99d2-d7e7125ae368" />
-<img width="1667" height="342" alt="Start agent service (Windows-pc)" src="https://github.com/user-attachments/assets/c3c2394d-ebb6-46b4-ae1e-146f7dea070a" />
+
+## Wazuh Agents Deployment
+<img width="1918" height="760" alt="Adding new agent" src="https://github.com/user-attachments/assets/3ced24df-8a4c-4ef4-ba25-324b1502930f" />
+<img width="1897" height="321" alt="Adding new agent_PC" src="https://github.com/user-attachments/assets/9a6a25b9-e9db-4fb6-b943-4af5850f65cb" />
+<img width="1916" height="868" alt="Troubleshoot (Solved)" src="https://github.com/user-attachments/assets/cf582899-cf5d-4d89-99eb-72627d1d3413" />
+
+## Sysmon Conf
+ <img width="1667" height="832" alt="add sysmon to ossec conf files - notedpad" src="https://github.com/user-attachments/assets/0c59e2ce-9e0d-4327-b771-052285b932fc" />
+
+## Wazuh Event
+<img width="1918" height="866" alt="Wazuh Event" src="https://github.com/user-attachments/assets/56ee9d33-efd5-48e4-82b3-a240b50d7ee0" />
+
+## FIM Conf
+<img width="1917" height="195" alt="FIM Integration (PC)" src="https://github.com/user-attachments/assets/1befbbd0-72a3-4953-b557-b62e7e9dcf0d" />
+<img width="1940" height="219" alt="FIM Check(server)" src="https://github.com/user-attachments/assets/b77c007c-7522-40d5-9d0d-a1ecaa86f2a3" />
+
+## Dashboard Conf
+<img width="1903" height="707" alt="dashboard1" src="https://github.com/user-attachments/assets/44244997-0102-4e1c-9fda-27da761c5ff5" />
+<img width="1912" height="731" alt="dashboard" src="https://github.com/user-attachments/assets/1e53600e-58cd-41fd-8746-75a69dca586b" />
+
+## Custom Detection Rules
+<img width="1910" height="693" alt="Custome rules set" src="https://github.com/user-attachments/assets/63052521-fbbd-4b49-8576-06e61c396a12" />
+<img width="1917" height="533" alt="Custome rules1" src="https://github.com/user-attachments/assets/f63b0d6d-1a33-48f0-9e6f-0f95ce1baaa5" />
+
+## Splunk Installation
+<img width="1617" height="237" alt="Splunk Install" src="https://github.com/user-attachments/assets/98f1ed55-6dc7-4d24-9c4c-1aacecd4da1f" />
+<img width="1892" height="792" alt="Splunk started" src="https://github.com/user-attachments/assets/cd2cb2b6-7136-4ba0-9d4c-1f03260146df" />
+
+## Splunk Universal Forwarder 
+<img width="1411" height="747" alt="Installing splunk universal forwarder2" src="https://github.com/user-attachments/assets/f4a11883-b7c3-420c-92a8-d8b43a3e8916" />
+
+## Splunk Index
+<img width="1893" height="666" alt="endpoint index created" src="https://github.com/user-attachments/assets/5018b69a-5056-4281-ae6b-789c06df579a" />
+<img width="1620" height="647" alt="inputs conf" src="https://github.com/user-attachments/assets/db384f22-d9b4-4ee7-ad7a-5f351573f009" />
+
+## Splunk Search
+<img width="1917" height="767" alt="Splunk Dashboard" src="https://github.com/user-attachments/assets/bd4cbf6b-e4b0-4ab7-b5f8-ad397529ad3b" />
+<img width="1915" height="810" alt="Splunk Log sources" src="https://github.com/user-attachments/assets/0963a503-92fc-4b38-95f1-b0fa2b9a4632" />
+
+## Splunk Alert
+<img width="1908" height="818" alt="Splunk Alert" src="https://github.com/user-attachments/assets/244fd0d8-223b-43c4-8c13-f3027ad6c704" />
+
+## Tines (SOAR)
+<img width="1893" height="786" alt="Tines Dashboard" src="https://github.com/user-attachments/assets/15fe52c0-0afa-4d2a-b32e-4871510832ac" />
+<img width="1917" height="795" alt="SOAR3" src="https://github.com/user-attachments/assets/902ccf83-1833-4918-8f61-84c602ef5e52" />
+<img width="1916" height="811" alt="SOAR4" src="https://github.com/user-attachments/assets/e0492ef0-c178-40cb-acad-fc011d3908a8" />
+<img width="1918" height="607" alt="SOAR5" src="https://github.com/user-attachments/assets/ea5987db-020f-44bb-869a-49f1180cebeb" />
+
+
+
+
+
+
+
+
+
+
 
 
 
