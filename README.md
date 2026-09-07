@@ -891,7 +891,7 @@ SOC Investigation
                               | Forwarded Telemetry
                               v
 +----------------------------------------------------------+
-|                   SPLUNK ENTERPRISE                     |
+|                   SPLUNK ENTERPRISE                      |
 |                  192.168.169.135:8000                    |
 |                                                          |
 |  - Index: endpoint                                       |
@@ -905,7 +905,7 @@ SOC Investigation
                               | Webhook
                               v
 +----------------------------------------------------------+
-|                       TINES SOAR                        |
+|                       TINES SOAR                         |
 |                                                          |
 |  - Alert Reception                                       |
 |  - IOC Extraction                                        |
