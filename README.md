@@ -1,6 +1,6 @@
 # AD + Splunk + Wazuh + SOAR Enterprise Security Lab
 **Date: September 07, 2026**
-
+---
 An end-to-end cybersecurity home lab demonstrating enterprise-style security monitoring, detection engineering, threat intelligence enrichment, and SOAR automation using Active Directory, Splunk, Wazuh, Sysmon, Tines, VirusTotal, AbuseIPDB, and Slack.
 
 The project simulates a small enterprise SOC environment where controlled security activity is generated from Kali Linux, collected from Windows systems, analyzed through Wazuh and Splunk, enriched through threat intelligence platforms, and automated through Tines SOAR.
