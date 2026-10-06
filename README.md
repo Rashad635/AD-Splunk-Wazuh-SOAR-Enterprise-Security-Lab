@@ -2009,7 +2009,7 @@ The project objectives centered around deploying Wazuh and Splunk, connecting Wi
 
 The project solves this problem by implementing an integrated security monitoring and automation architecture.
 
-*1. Centralized security monitoring*
+**1. Centralized security monitoring**
 
 The project uses Wazuh and Splunk as the main security monitoring platforms.
 
@@ -2017,7 +2017,7 @@ Wazuh handles endpoint monitoring, Windows event collection, Sysmon telemetry, F
 
 Splunk provides centralized event indexing, SPL-based investigation, Windows and Sysmon analysis, dashboards, correlation searches, detection development, and historical investigation.
 
-*2. High-fidelity endpoint telemetry*
+**2. High-fidelity endpoint telemetry**
 
 Sysmon is configured on Windows endpoints to provide detailed process and security telemetry.
 
@@ -2031,7 +2031,7 @@ The environment collects:
 
 This gives the SOC detailed visibility into endpoint activity.
 
-*3. Detection engineering*
+**3. Detection engineering**
 
 Custom detections are created in Wazuh and Splunk.
 
@@ -2046,7 +2046,7 @@ For example, the Splunk correlation search detects suspicious combinations invol
 
 The detection is scheduled every five minutes and generates the "Malicious Execution" alert when results are found.
 
-*4. Threat-intelligence enrichment*
+**4. Threat-intelligence enrichment**
 
 When an alert contains an indicator such as a URL or domain, Tines can send the indicator to:
 
@@ -2055,7 +2055,7 @@ When an alert contains an indicator such as a URL or domain, Tines can send the 
 
 The reputation results are then incorporated into the investigation context.
 
-*5. SOAR automation*
+**5. SOAR automation**
 
 Tines is used to automate the workflow after an alert is generated.
 
@@ -2083,15 +2083,15 @@ Slack
 
 Tines extracts information such as the hostname, username, process, parent process, command line, URL, domain, detection rule, severity, and timestamp.
 
-*6. Automated analyst notification*
+**6. Automated analyst notification**
 
 After enrichment, Tines sends the investigation summary to the dedicated Slack channel.
 
 The documented notification includes the severity, host, user, detection, findings, process, parent process, IOC, threat-intelligence result, and MITRE ATT&CK technique.
 
-**What is implemented**
+**What was implemented?**
 
-Implemented of an end-to-end enterprise-style SOC environment consisting of:
+Implementation of an end-to-end enterprise-style SOC environment consisting of:
 
 ```text
 
@@ -2121,33 +2121,33 @@ Analyst Investigation / Response
 
 The project consist of Active Directory, Windows endpoints, Splunk Enterprise, Wazuh, Sysmon, Wazuh FIM, custom Wazuh rules, custom Splunk alerts, MITRE ATT&CK mapping, Tines SOAR, VirusTotal, AbuseIPDB, Slack, and Kali Linux for controlled security testing.
 
-**Project Outcomes**
+**What is the Outcome?**
 
 The main outcome is a functional end-to-end SOC monitoring and incident-response workflow.
 
 The completed lab demonstrates:
 
-1. Centralized visibility
+**1. Centralized visibility**
 
 Security telemetry from Windows endpoints can be collected and analyzed centrally through Wazuh and Splunk.
 
-2. Detection of suspicious activity
+**2. Detection of suspicious activity**
 
 Custom detection rules can identify suspicious PowerShell and command-line behavior and convert raw telemetry into actionable alerts.
 
-3. Automated threat intelligence
+**3. Automated threat intelligence**
 
 Indicators extracted from alerts can automatically be investigated through VirusTotal and AbuseIPDB.
 
-4. Automated alert enrichment
+**4. Automated alert enrichment**
 
 Tines can combine the original alert with host, user, process, command-line, IOC, reputation, severity, and MITRE ATT&CK information.
 
-5. Faster analyst notification
+**5. Faster analyst notification**
 
 The enriched investigation can automatically be delivered to Slack instead of requiring an analyst to manually collect every piece of information.
 
-6. Practical incident investigation
+**6. Practical incident investigation**
 
 The project demonstrates the complete lifecycle:
 
@@ -2169,7 +2169,7 @@ Response
 
 ```
 
-7. SOC analyst skill development
+**7. SOC analyst skill development**
 
 The project demonstrates practical skills in SIEM deployment, XDR architecture, Windows security monitoring, Sysmon, Splunk, Wazuh, detection engineering, MITRE ATT&CK mapping, alert investigation, threat intelligence, SOAR automation, webhook integration, JSON alert processing, Slack notifications, dashboards, log analysis, and controlled attack simulation.
 
