@@ -156,7 +156,7 @@ The network contains:
 Kali Linux is connected to the same internal environment and is used to generate controlled security activity.
 ```
 
-# 5. Ubuntu security server
+## 5. Ubuntu security server
 
 The Ubuntu server provides the central security infrastructure.
 
@@ -208,7 +208,7 @@ Splunk provides:
   
 Running both platforms provides the ability to investigate the same endpoint activity from two SIEM perspectives.
 
-# 6. Active Directory domain controller
+## 6. Active Directory domain controller
 
 The Domain Controller is the identity and authentication core of the lab.
 
@@ -339,7 +339,7 @@ Sysmon provides detailed Windows endpoint telemetry that can be used for threat 
 * DNS queries
 
 
-# 9. Wazuh server installation
+## 9. Wazuh server installation
 
 Downloaded and run the installation script:
 
@@ -356,7 +356,7 @@ Wazuh dashboard: https://192.168.169.135
 
 ---
 
-# 10. Configure Wazuh to collect Sysmon
+## 10. Configure Wazuh to collect Sysmon
 
 Added Sysmon event collection to ossec.conf:
 
@@ -376,7 +376,7 @@ Key process fields: Image, CommandLine, ParentImage, User, Hashes, ProcessId.
 
 ---
 
-# 11. Wazuh archives
+## 11. Wazuh archives
 
 Configured Wazuh archives to retain raw event data for investigation, including events that do not trigger alerts.
 
@@ -398,7 +398,7 @@ This enables searching archived events in the Wazuh environment.
 
 ---
 
-# 12. Windows Wazuh agent
+## 12. Windows Wazuh agent
 
 Download the Wazuh agent:
 
@@ -417,7 +417,7 @@ Verify that DP-PC1 appears under Wazuh Dashboard → Agents.
 
 ---
 
-# 13. File Integrity Monitoring
+## 13. File Integrity Monitoring
 
 Wazuh FIM detects changes to monitored files and directories.
 
@@ -436,7 +436,7 @@ Verify the resulting file change events in the Wazuh dashboard.
 
 ---
 
-# 14. Custom detection rules
+## 14. Custom detection rules
 
 Created a custom Wazuh rule to detect when the Windows Guest account is enabled.
 
@@ -458,7 +458,7 @@ The rule matches Windows Event ID 4722 for the Guest account and generates a lev
 
 Validated the parent rule ID and event fields against the actual event generated in the environment before deploying the custom detection.
 
-# 15. Detection engineering
+## 15. Detection engineering
 
 The project can be extended with custom detections for:
 
@@ -498,7 +498,7 @@ Investigation
 
 ---
 
-# 16. MITRE ATT&CK mapping
+## 16. MITRE ATT&CK mapping
 
 Detection mapped to MITRE ATT&CK techniques.
 
@@ -528,7 +528,7 @@ Each technique will be mapped according to the behavior actually observed by the
 
 ---
 
-# 17. Wazuh to Tines integration
+## 17. Wazuh to Tines integration
 
 Created a custom Wazuh integration for forwarding selected alerts to a Tines webhook.
 
@@ -553,7 +553,7 @@ Updated the integration script for the Tines webhook and expected payload format
 Monitor the Wazuh manager log for integration activity:
 sudo tail -f /var/ossec/logs/ossec.log
 
-# 18. Tines SOAR
+## 18. Tines SOAR
 
 The workflow is:
 
@@ -570,7 +570,7 @@ Tines
      +------> Slack
 ```
 
-# 19. VirusTotal enrichment
+## 19. VirusTotal enrichment
 
 VirusTotal used to investigate supported indicators such as file hashes.
 
@@ -593,7 +593,7 @@ The resulting reputation information passed to the final Tines decision to Slack
 
 ---
 
-# 20. AbuseIPDB enrichment
+## 20. AbuseIPDB enrichment
 
 AbuseIPDB used to investigate IP-based indicators.
 
@@ -616,7 +616,7 @@ The resulting reputation information passed to the final Tines decision to Slack
 
 ---
 
-# 21. Slack notification
+## 21. Slack notification
 
 After enrichment, Tines can send the security event to a Slack security channel.
 
@@ -654,7 +654,7 @@ This gives the analyst useful context without requiring every enrichment step to
 
 ---
 
-# 22. Enterprise Splunk SIEM deployment and SOAR automated incident response
+## 22. Enterprise Splunk SIEM deployment and SOAR automated incident response
 
 The project demonstrates an end-to-end security operations workflow:
 
@@ -921,7 +921,7 @@ This confirms that the endpoint is generating telemetry across multiple Windows 
 
 ---
 
-# 23. Threat simulation
+## 23. Threat simulation
 
 The lab uses a controlled adversary simulation to generate telemetry that can be detected and investigated.
 
@@ -968,7 +968,7 @@ This generates telemetry that can be observed through:
 
 ---
 
-# 24. Detection engineering
+## 24. Detection engineering
 
 **Correlation search**
 
@@ -1045,7 +1045,7 @@ This demonstrates the transition from raw telemetry to an actionable security de
 
 ---
 
-# 25. SOAR automation
+## 25. SOAR automation
 
 The SOAR layer receives the Splunk alert and performs automated enrichment.
 
@@ -1082,7 +1082,7 @@ The automation extracts information such as:
 
 ---
 
-# 26. VirusTotal/AbuseIPDB enrichment
+## 26. VirusTotal/AbuseIPDB enrichment
 
 VirusTotal is used to enrich supported indicators identified by the detection.
 
@@ -1108,7 +1108,7 @@ For URL-based indicators, the workflow can query the URL or domain reputation an
 
 ---
 
-# 27. Slack incident notification
+## 27. Slack incident notification
 
 After enrichment, Tines sends the investigation summary to the dedicated `#soar` Slack channel.
 
@@ -1152,7 +1152,7 @@ T1059.001 - PowerShell
 
 ---
 
-# 28. Automated investigation summary
+## 28. Automated investigation summary
 
 The SOAR workflow generated the following investigation context during the simulated scenario.
 
@@ -1242,7 +1242,7 @@ Recommend Blocking
 
 ---
 
-# 29. End-to-end incident response workflow
+## 29. End-to-end incident response workflow
 
 The complete workflow is:
 
@@ -1290,7 +1290,7 @@ The complete workflow is:
 
 ---
 
-# 30. Kali Linux security testing
+## 30. Kali Linux security testing
 
 Kali Linux is used as the controlled attacker/test system.
 
@@ -1328,7 +1328,7 @@ This allows the lab to demonstrate a complete SOC investigation rather than simp
 
 ---
 
-# 31. End-to-end detection workflow
+## 31. End-to-end detection workflow
 
 The complete detection and response workflow is:
 
@@ -1385,7 +1385,7 @@ The complete detection and response workflow is:
 
 ---
 
-# 32. SOC investigation workflow
+## 32. SOC investigation workflow
 
 ## Step 1: Identify the alert
 
@@ -1457,7 +1457,7 @@ Tines sends the enriched alert to Slack.
 
 ---
 
-# 33. Dashboards
+## 33. Dashboards
 
 Recommended Wazuh and Splunk dashboards include:
 
@@ -1493,7 +1493,7 @@ Recommended Wazuh and Splunk dashboards include:
 
 ---
 
-# 34. Validation and testing
+## 34. Validation and testing
 
 ## Wazuh server
 
@@ -1559,7 +1559,7 @@ Slack
 
 ---
 
-# 35. Troubleshooting
+## 35. Troubleshooting
 
 ## Wazuh agent does not appear
 
@@ -1662,7 +1662,7 @@ The configured rule must actually generate a Wazuh alert before the integration 
 
 ---
 
-# 36. Skills demonstrated
+## 36. Skills demonstrated
 
 This project demonstrates practical experience with:
 
@@ -1694,7 +1694,7 @@ This project demonstrates practical experience with:
 
 ---
 
-# 37. Project outcome
+## 37. Project outcome
 
 The completed lab provides an end-to-end security monitoring and automation environment.
 
@@ -1751,7 +1751,7 @@ Security Notification
 
 ---
 
-# 38. Final architecture
+## 38. Final architecture
 
 ```text
                           INTERNET
@@ -1804,7 +1804,7 @@ Security Notification
 ```
 ---
 
-# 39. Conclusion
+## 39. Conclusion
 
 **What is the problem?**
 
@@ -2017,7 +2017,7 @@ Atomic Red Team
 
 ```
 
-# 40. Screenshots
+## 40. Screenshots
 
 ## Wazuh Installation
 <img width="1662" height="792" alt="Wazuh curl" src="https://github.com/user-attachments/assets/9b31d8cb-121d-4803-a9e2-936c15dbd9b5" />
