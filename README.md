@@ -341,129 +341,60 @@ Sysmon provides detailed Windows endpoint telemetry that can be used for threat 
 
 # 9. Wazuh server installation
 
-Download the Wazuh installation script:
+Downloaded and run the installation script:
 
-```bash
 curl -sO https://packages.wazuh.com/4.14/wazuh-install.sh
-```
-
-Run the all-in-one installation:
-
-```bash
 sudo bash ./wazuh-install.sh -a
-```
 
-The `-a` option performs an all-in-one Wazuh installation.
+Verify services:
 
-Started the services:
-
-```bash
-sudo systemctl start wazuh-manager
-sudo systemctl start wazuh-dashboard
-sudo systemctl start wazuh-indexer
-```
-
-Verified:
-
-```bash
 sudo systemctl status wazuh-manager
 sudo systemctl status wazuh-dashboard
 sudo systemctl status wazuh-indexer
-```
 
-The Wazuh dashboard available at:
-
-`https://192.168.169.135`
+Wazuh dashboard: https://192.168.169.135
 
 ---
 
 # 10. Configure Wazuh to collect Sysmon
 
-On the Windows endpoint, edited:
+Added Sysmon event collection to ossec.conf:
 
-```text
-C:\Program Files (x86)\ossec-agent\ossec.conf
-```
-
-Added:
-
-```xml
 <localfile>
     <location>Microsoft-Windows-Sysmon/Operational</location>
     <log_format>eventchannel</log_format>
 </localfile>
-```
 
-Restarted the Wazuh agent:
+Restarted and verified the Wazuh agent:
 
-```powershell
 Restart-Service Wazuh
-```
-
-Verified the service:
-
-```powershell
 Get-Service Wazuh
-```
 
-Generated a test process:
+Launched notepad.exe to generate a test process event and confirmed it appeared in Wazuh.
 
-```powershell
-notepad.exe
-```
-
-The resulting Sysmon event appeared in Wazuh.
-
-Useful process fields include:
-
-* `Image`
-* `CommandLine`
-* `ParentImage`
-* `User`
-* `Hashes`
-* `ProcessId`
+Key process fields: Image, CommandLine, ParentImage, User, Hashes, ProcessId.
 
 ---
 
 # 11. Wazuh archives
 
-Wazuh archives allow raw event data to be retained for investigation, including events that may not generate Wazuh alerts.
+Configured Wazuh archives to retain raw event data for investigation, including events that do not trigger alerts.
 
-Edited:
+Edited the configuration files:
 
-```bash
 sudo nano /var/ossec/etc/ossec.conf
-```
-
-Configured the archive settings according to the deployment requirements.
-
-Configured Filebeat:
-
-```bash
 sudo nano /etc/filebeat/filebeat.yml
-```
 
-Restarted the services:
+Restarted and verified the services:
 
-```bash
 sudo systemctl restart wazuh-manager
 sudo systemctl restart filebeat
-```
 
-Verified:
+Created the index pattern:
 
-```bash
-sudo systemctl status wazuh-manager
-sudo systemctl status filebeat
-```
-
-Created the Wazuh archive index pattern:
-
-```text
 wazuh-archives*
-```
 
-This allows archived events to be searched from the Wazuh environment.
+This enables searching archived events in the Wazuh environment.
 
 ---
 
@@ -471,37 +402,18 @@ This allows archived events to be searched from the Wazuh environment.
 
 Download the Wazuh agent:
 
-```powershell
 Invoke-WebRequest -Uri https://packages.wazuh.com/4.x/windows/wazuh-agent-4.14.7-1.msi -OutFile $env:TEMP\wazuh-agent.msi
-```
 
-Install the agent:
+Install and configure the agent:
 
-```powershell
-msiexec.exe /i $env:TEMP\wazuh-agent.msi /q `
-WAZUH_MANAGER='192.168.169.135' `
-WAZUH_AGENT_NAME='DP-PC1'
-```
+msiexec.exe /i $env:TEMP\wazuh-agent.msi /q WAZUH_MANAGER='192.168.169.135' WAZUH_AGENT_NAME='DP-PC1'
 
-Start the service:
+Start and verify the service:
 
-```powershell
 NET START Wazuh
-```
-
-Verify:
-
-```powershell
 Get-Service Wazuh
-```
 
-The endpoint should appear under:
-
-```text
-Wazuh Dashboard
-    |
-    +-- Agents
-```
+Verify that DP-PC1 appears under Wazuh Dashboard → Agents.
 
 ---
 
@@ -510,111 +422,39 @@ Wazuh Dashboard
 Wazuh FIM detects changes to monitored files and directories.
 
 Create a test directory:
-
-```powershell
 New-Item -ItemType Directory -Path C:\CompanyData
-```
 
-Create:
-
-```text
-C:\CompanyData\payroll.txt
-```
-
-Edit:
-
-```text
-C:\Program Files (x86)\ossec-agent\ossec.conf
-```
-
-Add:
-
-```xml
+Edit C:\Program Files (x86)\ossec-agent\ossec.conf and add:
 <directories realtime="yes">C:\CompanyData\</directories>
-```
 
-Restart the agent:
-
-```powershell
+Restart the Wazuh agent:
 Restart-Service Wazuh
-```
 
-Test the monitoring:
+Test FIM by creating, modifying, and deleting C:\CompanyData\payroll.txt.
 
-```text
-Create payroll.txt
-        |
-        v
-Modify payroll.txt
-        |
-        v
-Delete payroll.txt
-```
-
-Wazuh should generate File Integrity Monitoring events describing the changes.
+Verify the resulting file change events in the Wazuh dashboard.
 
 ---
 
 # 14. Custom detection rules
 
-**Guest account activation**
-```
+Created a custom Wazuh rule to detect when the Windows Guest account is enabled.
 
-Example rule:
-
-```xml
 <group name="windows,windows_security,account_changed,adduser">
-
   <rule id="100200" level="12">
-
     <if_sid>60103</if_sid>
-
     <field name="win.system.eventID">^4722$</field>
-
     <field name="win.eventdata.targetUserName">^Guest$</field>
-
     <description>Windows Guest account was enabled.</description>
-
     <mitre>
-
       <id>T1078.001</id>
-
     </mitre>
-
-    <group>
-
-      windows,
-
-      windows_account_management,
-
-      account_enabled,
-
-      guest_account,
-
-    </group>
-
+    <group>windows_account_management,account_enabled,guest_account</group>
   </rule>
-
 </group>
-```
 
-The rule demonstrates:
 
-```text
-Windows Event
-     |
-     v
-Parent Rule
-     |
-     v
-Custom Rule 100200
-     |
-     v
-Severity 12
-     |
-     v
-MITRE ATT&CK T1078
-```
+The rule matches Windows Event ID 4722 for the Guest account and generates a level 12 alert mapped to MITRE ATT&CK T1078.001 (Valid Accounts: Default Accounts).
 
 Validated the parent rule ID and event fields against the actual event generated in the environment before deploying the custom detection.
 
@@ -690,47 +530,28 @@ Each technique will be mapped according to the behavior actually observed by the
 
 # 17. Wazuh to Tines integration
 
-Create the custom integration:
+Created a custom Wazuh integration for forwarding selected alerts to a Tines webhook.
 
-```bash
-sudo cp /var/ossec/integrations/shuffle \
-    /var/ossec/integrations/custom-tines
+Copied the integration scripts and set ownership:
+sudo cp /var/ossec/integrations/shuffle /var/ossec/integrations/custom-tines
+sudo cp /var/ossec/integrations/shuffle /var/ossec/integrations/custom-tines.py
 
-sudo cp /var/ossec/integrations/shuffle \
-    /var/ossec/integrations/custom-tines.py
-```
+sudo chown root:wazuh /var/ossec/integrations/custom-tines*
 
-Set ownership:
+Configured the integration in /var/ossec/etc/ossec.conf:
 
-```bash
-sudo chown root:wazuh /var/ossec/integrations/custom-tines
-sudo chown root:wazuh /var/ossec/integrations/custom-tines.py
-```
-
-Reviewed the integration script and configure it specifically for Tines webhook and expected payload format.
-
-Edited:
-
-```bash
-sudo nano /var/ossec/etc/ossec.conf
-```
-
-Added:
-
-```xml
 <integration>
     <name>custom-tines</name>
     <hook_url>https://tines-webhook-url</hook_url>
     <alert_format>json</alert_format>
     <rule_id>100101</rule_id>
 </integration>
-```
 
-with the webhook generated by the Tines workflow.
 
-The `rule_id` determines which Wazuh detection triggers the integration.
+Updated the integration script for the Tines webhook and expected payload format. The rule_id specifies which Wazuh rule triggers the integration.
 
-Monitor the Wazuh log:
+Monitor the Wazuh manager log for integration activity:
+sudo tail -f /var/ossec/logs/ossec.log
 
 # 18. Tines SOAR
 
@@ -1506,8 +1327,6 @@ Investigation
 This allows the lab to demonstrate a complete SOC investigation rather than simply collecting passive logs.
 
 ---
-
-
 
 # 31. End-to-end detection workflow
 
