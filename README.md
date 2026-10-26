@@ -343,15 +343,17 @@ Sysmon provides detailed Windows endpoint telemetry that can be used for threat 
 
 Downloaded and run the installation script:
 
+```
 curl -sO https://packages.wazuh.com/4.14/wazuh-install.sh
 sudo bash ./wazuh-install.sh -a
-
+```
 Verify services:
 
+```
 sudo systemctl status wazuh-manager
 sudo systemctl status wazuh-dashboard
 sudo systemctl status wazuh-indexer
-
+```
 Wazuh dashboard: https://192.168.169.135
 
 ---
@@ -360,20 +362,23 @@ Wazuh dashboard: https://192.168.169.135
 
 Added Sysmon event collection to ossec.conf:
 
+```
 <localfile>
     <location>Microsoft-Windows-Sysmon/Operational</location>
     <log_format>eventchannel</log_format>
 </localfile>
-
+```
 Restarted and verified the Wazuh agent:
 
+```
 Restart-Service Wazuh
 Get-Service Wazuh
-
+```
 Launched notepad.exe to generate a test process event and confirmed it appeared in Wazuh.
 
+```
 Key process fields: Image, CommandLine, ParentImage, User, Hashes, ProcessId.
-
+```
 ---
 
 ## 11. Wazuh archives
@@ -382,17 +387,22 @@ Configured Wazuh archives to retain raw event data for investigation, including 
 
 Edited the configuration files:
 
+```
 sudo nano /var/ossec/etc/ossec.conf
 sudo nano /etc/filebeat/filebeat.yml
-
+```
 Restarted and verified the services:
 
+```
 sudo systemctl restart wazuh-manager
 sudo systemctl restart filebeat
+```
 
 Created the index pattern:
 
+```
 wazuh-archives*
+```
 
 This enables searching archived events in the Wazuh environment.
 
@@ -402,16 +412,22 @@ This enables searching archived events in the Wazuh environment.
 
 Download the Wazuh agent:
 
+```
 Invoke-WebRequest -Uri https://packages.wazuh.com/4.x/windows/wazuh-agent-4.14.7-1.msi -OutFile $env:TEMP\wazuh-agent.msi
+```
 
 Install and configure the agent:
 
+```
 msiexec.exe /i $env:TEMP\wazuh-agent.msi /q WAZUH_MANAGER='192.168.169.135' WAZUH_AGENT_NAME='DP-PC1'
+```
 
 Start and verify the service:
 
+```
 NET START Wazuh
 Get-Service Wazuh
+```
 
 Verify that DP-PC1 appears under Wazuh Dashboard → Agents.
 
@@ -422,13 +438,22 @@ Verify that DP-PC1 appears under Wazuh Dashboard → Agents.
 Wazuh FIM detects changes to monitored files and directories.
 
 Create a test directory:
+
+```
 New-Item -ItemType Directory -Path C:\CompanyData
+```
 
 Edit C:\Program Files (x86)\ossec-agent\ossec.conf and add:
+
+```
 <directories realtime="yes">C:\CompanyData\</directories>
+```
 
 Restart the Wazuh agent:
+
+```
 Restart-Service Wazuh
+```
 
 Test FIM by creating, modifying, and deleting C:\CompanyData\payroll.txt.
 
@@ -440,6 +465,7 @@ Verify the resulting file change events in the Wazuh dashboard.
 
 Created a custom Wazuh rule to detect when the Windows Guest account is enabled.
 
+```
 <group name="windows,windows_security,account_changed,adduser">
   <rule id="100200" level="12">
     <if_sid>60103</if_sid>
@@ -452,7 +478,7 @@ Created a custom Wazuh rule to detect when the Windows Guest account is enabled.
     <group>windows_account_management,account_enabled,guest_account</group>
   </rule>
 </group>
-
+```
 
 The rule matches Windows Event ID 4722 for the Guest account and generates a level 12 alert mapped to MITRE ATT&CK T1078.001 (Valid Accounts: Default Accounts).
 
